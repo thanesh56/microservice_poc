@@ -1,7 +1,5 @@
 package com.thanesh.employeeapp.employeeservice.reponse;
 
-import lombok.*;
-
 //@Setter
 //@Getter
 //@NoArgsConstructor

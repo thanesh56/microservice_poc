@@ -1,12 +1,15 @@
 package com.thanesh.addressapp.addressservice.controller;
 
 import com.thanesh.addressapp.addressservice.dto.AddressDTO;
+import com.thanesh.addressapp.addressservice.response.ServerResponse;
 import com.thanesh.addressapp.addressservice.service.AddressService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,15 +37,30 @@ public class AddressController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error!")
     })
     @GetMapping(GET_ADDRESS_BY_EMPLOYEE_ID)
-    public AddressDTO getAddressByEmployeeId(@PathVariable("employeeId") Integer employeeId) {
+    public ResponseEntity<ServerResponse> getAddressByEmployeeId(@PathVariable("employeeId") Integer employeeId) {
+        System.out.println("employeeId = " + employeeId);
         AddressDTO addressDTO = addressService.getAddressByEmployeeId(employeeId);
         System.out.println("Received Request to Address of employeeId = " + employeeId);
         System.out.println("addressDTO = " + addressDTO);
-
-        return addressDTO;
+        ResponseEntity<ServerResponse> responseEntity;
+        if (addressDTO != null) {
+            responseEntity = new ResponseEntity<>(new ServerResponse(HttpStatus.OK.value() + "", "Address with employeeId = " + employeeId + " successfully fetched!!", addressDTO, HttpStatus.OK.name()), HttpStatus.OK);
+        } else {
+            responseEntity = new ResponseEntity<>(new ServerResponse(HttpStatus.NOT_FOUND.value() + "", "Address with employeeId = " + employeeId + " not be found", null, HttpStatus.NOT_FOUND.name()), HttpStatus.NOT_FOUND);
+        }
+        return responseEntity;
     }
 
-   /* @GetMapping(GET_ADDRESS_BY_ID)
+    /*@GetMapping(GET_ADDRESS_BY_EMPLOYEE_ID)
+    public AddressDTO getAddressByEmployeeId(@PathVariable("employeeId") Integer employeeId) {
+        System.out.println("employeeId = " + employeeId);
+        AddressDTO addressDTO = addressService.getAddressByEmployeeId(employeeId);
+        System.out.println("Received Request to Address of employeeId = " + employeeId);
+        System.out.println("addressDTO = " + addressDTO);
+        return addressDTO;
+    }*/
+
+    /* @GetMapping(GET_ADDRESS_BY_ID)
     public ResponseEntity<ServerResponse> getAddress(@PathVariable("id") Integer id) {
         AddressDTO addressDTO = addressService.getAddressById(id);
         System.out.println("Received Request to Address id = " + id);

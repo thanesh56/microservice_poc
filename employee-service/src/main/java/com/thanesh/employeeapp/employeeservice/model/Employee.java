@@ -1,7 +1,11 @@
 package com.thanesh.employeeapp.employeeservice.model;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 
 @Entity
@@ -9,16 +13,16 @@ import jakarta.persistence.*;
 public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name= "id")
+    @Column(name = "id")
     private Integer id;
 
-    @Column(name= "name")
+    @Column(name = "name")
     private String name;
 
-    @Column(name= "email")
+    @Column(name = "email")
     private String email;
 
-    @Column(name= "bloodgroup")
+    @Column(name = "bloodgroup")
     private String bloodGroup;
 
     public Employee(Integer id, String name, String email, String bloodGroup) {

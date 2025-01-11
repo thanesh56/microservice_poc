@@ -19,7 +19,7 @@ import java.util.List;
 import static com.thanesh.employeeapp.employeeservice.constant.AppConstant.GET_EMPLOYEE_BY_ID;
 import static com.thanesh.employeeapp.employeeservice.constant.AppConstant.URL_PATH;
 
-@Tag(name = "Employee App", description = "This is just POC project for micro-service application, here we can perform employee crud related activity." )
+@Tag(name = "Employee App", description = "This is just POC project for micro-service application, here we can perform employee crud related activity.")
 @RestController
 public class EmployeeController {
 
