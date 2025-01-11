@@ -4,4 +4,5 @@ public interface AppConstant {
 
     String URL_PATH = "/employees";
     String GET_EMPLOYEE_BY_ID = URL_PATH + "/{id}";
+    String GET_ADDRESS_BY_EMPLOYEE_ID = "/addresses/{employeeId}";
 }

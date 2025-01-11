@@ -37,7 +37,11 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDTO getAddressByEmployeeId(Integer employeeId) {
-        return modelMapper.map(addressRepository.findAddressByEmployeeId(employeeId), AddressDTO.class);
+        Address address = addressRepository.findAddressByEmployeeId(employeeId);
+        if (address != null) {
+            return modelMapper.map(address, AddressDTO.class);
+        }
+        return null;
     }
 
     @Override
