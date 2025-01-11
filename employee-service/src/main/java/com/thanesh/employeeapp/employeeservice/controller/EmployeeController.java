@@ -3,6 +3,10 @@ package com.thanesh.employeeapp.employeeservice.controller;
 import com.thanesh.employeeapp.employeeservice.dto.EmployeeDTO;
 import com.thanesh.employeeapp.employeeservice.reponse.ServerResponse;
 import com.thanesh.employeeapp.employeeservice.service.EmployeeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +19,20 @@ import java.util.List;
 import static com.thanesh.employeeapp.employeeservice.constant.AppConstant.GET_EMPLOYEE_BY_ID;
 import static com.thanesh.employeeapp.employeeservice.constant.AppConstant.URL_PATH;
 
+@Tag(name = "Employee App", description = "This is just POC project for micro-service application, here we can perform employee crud related activity." )
 @RestController
 public class EmployeeController {
 
     @Autowired
     EmployeeService employeeService;
 
+
+    @Operation(summary = "Fetch employee", description = "Fetch employee by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully fetched employee!!!"),
+            @ApiResponse(responseCode = "400", description = "Employee NotFound"),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error!")
+    })
     @GetMapping(GET_EMPLOYEE_BY_ID)
     public ResponseEntity<ServerResponse> getEmployeeById(@PathVariable("id") Integer id) {
         EmployeeDTO employeeDTO = employeeService.getEmployeeById(id);
