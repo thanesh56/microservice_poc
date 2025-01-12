@@ -2,7 +2,7 @@ package com.thanesh.employeeapp.employeeservice.service.impl;
 
 import com.thanesh.employeeapp.employeeservice.dto.Address;
 import com.thanesh.employeeapp.employeeservice.dto.EmployeeDTO;
-import com.thanesh.employeeapp.employeeservice.external.service.AddressClient;
+import com.thanesh.employeeapp.employeeservice.external.service.AddressService;
 import com.thanesh.employeeapp.employeeservice.model.Employee;
 import com.thanesh.employeeapp.employeeservice.reponse.ServerResponse;
 import com.thanesh.employeeapp.employeeservice.repository.EmployeeRepository;
@@ -24,12 +24,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     ModelMapper modelMapper;
 
     @Autowired
-    AddressClient addressClient;
+    AddressService addressService;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, ModelMapper modelMapper, AddressClient addressClient) {
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, ModelMapper modelMapper, AddressService addressService) {
         this.employeeRepository = employeeRepository;
         this.modelMapper = modelMapper;
-        this.addressClient = addressClient;
+        this.addressService = addressService;
     }
 
     @Override
@@ -43,9 +43,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
             try {
                 //call address microservice
-                ServerResponse serverResponseWithAddress = addressClient.getAddressByEmployeeId(id).getBody();
+                ServerResponse serverResponseWithAddress = addressService.getAddressByEmployeeId(id).getBody();
+                System.out.println("serverResponseWithAddress = " + serverResponseWithAddress);
                 if (HttpStatus.OK.name().equals(serverResponseWithAddress.getStatus())) {
-                    Address address = (Address) serverResponseWithAddress.getData();
+                    Address address = modelMapper.map(serverResponseWithAddress.getData(), Address.class);
                     System.out.println("address = " + address);
                     employeeDTO.setAddress(address);
                     System.out.println("employeeDTO = " + employeeDTO);

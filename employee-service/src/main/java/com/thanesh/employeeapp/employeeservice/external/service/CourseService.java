@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.List;
 
 @FeignClient(name = "COURSE-SERVICE", path = "/course-app/api")
-public interface CourseClient {
+public interface CourseService {
     @GetMapping("/courses")
     List<CourseResponse> getAllCourse();
 
