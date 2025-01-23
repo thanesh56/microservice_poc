@@ -28,5 +28,5 @@ References:
 
 <hr/>
 
-TroubleShut: 
+TroubleShoot: 
   - 
