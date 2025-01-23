@@ -1,4 +1,4 @@
-package com.thanesh.employeeapp.employeeservice.reponse;
+package com.thanesh.employeeapp.employeeservice.response;
 
 //@Setter
 //@Getter

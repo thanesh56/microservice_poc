@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.2.4'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'checkstyle'
+	id 'jacoco'
 }
 
 group = 'com.thanesh.employeeapp'
@@ -20,6 +21,8 @@ ext {
 	set('springCloudVersion', "2023.0.1")
 	set('openApiVersion', "2.1.0")
 	set('checkstyleVersion', "10.12.4")
+	set('modelMapperVersion', "3.2.0")
+	set('lombokVersion', "1.18.30")
 }
 
 dependencies {
@@ -29,12 +32,13 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.projectlombok:lombok:1.18.22'
-	implementation 'org.modelmapper:modelmapper:3.2.0'
+	implementation "org.projectlombok:lombok:${lombokVersion}"
+	implementation "org.modelmapper:modelmapper:${modelMapperVersion}"
 	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openApiVersion}"
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'com.h2database:h2'
 }
 
 dependencyManagement {
@@ -53,3 +57,95 @@ checkstyle {
 	//optional: if you have custome path of checkstyle then add loaction of that
 	//config = rootProject.resources.text.fromFile("config/checkstyle/checkstyle.xml")//this line is not required if we configure in default path which is config/checkstyle/checkstyle.xml
 }
+
+// Configuring JaCoCo plugin settings
+jacoco {
+	// Below both lines are optional it is use full if you want specific version and custom path
+	// toolVersion = "0.8.11"
+	// reportsDirectory = layout.buildDirectory.dir("customJacocoReportDir") //default path is reports/jacoco
+}
+
+//exclude some of the file from JaCoCo coverage
+String[] excludePath = [
+		'com/**/constant/**',
+		'com/**/config/**',
+		'com/**/model/**',
+		'com/**/dto/**',
+		'com/**/external/**',
+		'com/**/EmployeeService.class',
+		'com/**/EmployeeServiceApplication.class',
+]
+
+
+// JaCoCo Report configuration
+jacocoTestReport {
+	group = "Reporting"
+	reports {
+		xml.required.set(false)
+		csv.required.set(false)
+		html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco"))
+	}
+
+	afterEvaluate {
+		getClassDirectories().setFrom(
+				files(classDirectories.files.collect {
+					fileTree(dir: it, exclude: excludePath)
+				})
+		)
+	}
+}
+
+// Configuring violation rules
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				setMinimum(0.90)
+			}
+			//setFailOnViolation(true)
+		}
+
+		rule {
+			enabled = false
+			element = 'CLASS'
+			includes = ['org.gradle.*']
+
+
+			limit {
+				counter = 'LINE'
+				value = 'TOTALCOUNT'
+				maximum = 0.3
+			}
+		}
+	}
+
+	afterEvaluate {
+		getClassDirectories().setFrom(
+				files(classDirectories.files.collect {
+					fileTree(dir: it, exclude: excludePath)
+				})
+		)
+	}
+}
+
+// checkstyle task will run before test task
+checkstyleMain {
+	finalizedBy test
+}
+
+test {
+	finalizedBy jacocoTestReport // report is always generated after tests run
+}
+jacocoTestReport {
+	dependsOn test // tests are required to run before generating the report
+}
+
+// checkstyle and jacocoTestReport task will need to run before assemble and build
+assemble {
+	dependsOn(jacocoTestReport)
+}
+
+build {
+	dependsOn(jacocoTestCoverageVerification)
+}
+
