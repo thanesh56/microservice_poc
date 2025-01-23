@@ -1,13 +1,16 @@
 package com.thanesh.employeeapp.employeeservice.controller;
 
 import com.thanesh.employeeapp.employeeservice.dto.EmployeeDTO;
-import com.thanesh.employeeapp.employeeservice.reponse.ServerResponse;
+import com.thanesh.employeeapp.employeeservice.response.ServerResponse;
 import com.thanesh.employeeapp.employeeservice.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,9 +22,12 @@ import java.util.List;
 import static com.thanesh.employeeapp.employeeservice.constant.AppConstant.GET_EMPLOYEE_BY_ID;
 import static com.thanesh.employeeapp.employeeservice.constant.AppConstant.URL_PATH;
 
+
+@EnableFeignClients
 @Tag(name = "Employee App", description = "This is just POC project for micro-service application, here we can perform employee crud related activity.")
 @RestController
 public class EmployeeController {
+    private static final Logger log = LoggerFactory.getLogger(EmployeeController.class);
 
     @Autowired
     EmployeeService employeeService;
@@ -35,27 +41,43 @@ public class EmployeeController {
     })
     @GetMapping(GET_EMPLOYEE_BY_ID)
     public ResponseEntity<ServerResponse> getEmployeeById(@PathVariable("id") Integer id) {
-        EmployeeDTO employeeDTO = employeeService.getEmployeeById(id);
-        System.out.println("Received Request to Employee id = " + id);
-        System.out.println("employeeDTO = " + employeeDTO);
+        log.info("Request received to fetch Employee id = " + id);
         ResponseEntity<ServerResponse> responseEntity;
-        if (employeeDTO != null) {
-            //responseEntity = new ResponseEntity<>(new ServerResponse(HttpStatus.OK.value() + "", "Employee with id = " + id + " successfully fetched", employeeDTO, HttpStatus.OK.name()), HttpStatus.OK);
-            //or both are same
-            responseEntity =  ResponseEntity.status(HttpStatus.OK).body(new ServerResponse(HttpStatus.OK.value() + "", "Employee with id = " + id + " successfully fetched", employeeDTO, HttpStatus.OK.name()));
-        } else {
-            //responseEntity = new ResponseEntity<>(new ServerResponse(HttpStatus.NOT_FOUND.value() + "", "Employee with id = " + id + " not be found", null, HttpStatus.NOT_FOUND.name()), HttpStatus.NOT_FOUND);
-            //or
-            responseEntity = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ServerResponse(HttpStatus.NOT_FOUND.value() + "", "Employee with id = " + id + " not be found", null, HttpStatus.NOT_FOUND.name()));
+        try {
+            EmployeeDTO employeeDTO = employeeService.getEmployeeById(id);
+            log.debug("getEmployeeById::employeeDTO = " + employeeDTO);
+            if (employeeDTO != null) {
+                log.info("Employee with id = " + id + " successfully fetched");
+                responseEntity = ResponseEntity.status(HttpStatus.OK).body(new ServerResponse(HttpStatus.OK.value() + "", "Employee with id = " + id + " successfully fetched", employeeDTO, HttpStatus.OK.name()));
+            } else {
+                log.info("Unable to find Data for Employee id = " + id);
+                responseEntity = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ServerResponse(HttpStatus.NOT_FOUND.value() + "", "Employee with id = " + id + " not be found", null, HttpStatus.NOT_FOUND.name()));
+            }
+            return responseEntity;
+        } catch (Exception ex) {
+            log.error("Something went wrong, Unable to fetch employee for given id = " + id, ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ServerResponse(HttpStatus.INTERNAL_SERVER_ERROR.value() + "",
+                            "Something went wrong, Unable to fetch employee for given id = " + id,
+                            null, HttpStatus.INTERNAL_SERVER_ERROR.name()));
         }
-
-        return responseEntity;
     }
 
     @GetMapping(URL_PATH)
-    List<EmployeeDTO> getAllEmployees() {
-        List<EmployeeDTO> employeeDTOS = employeeService.getEmployees();
-        System.out.println("employeeDTOS = " + employeeDTOS);
-        return employeeDTOS;
+    ResponseEntity<ServerResponse> getAllEmployees() {
+        try {
+            List<EmployeeDTO> employeeDTOS = employeeService.getAllEmployees();
+            log.info("All Employee are successfully fetched!!");
+            log.debug("employeeDTOS = " + employeeDTOS);
+            return ResponseEntity.ok(new ServerResponse(HttpStatus.OK.value() + "", "All Employee are successfully fetched!!", employeeDTOS, HttpStatus.OK.name()));
+        } catch (Exception ex) {
+            log.error("Something went wrong, Unable to fetch all employee!!");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ServerResponse(HttpStatus.INTERNAL_SERVER_ERROR.value() + "",
+                                    "Something went wrong, Unable to fetch all employee",
+                                    null, HttpStatus.INTERNAL_SERVER_ERROR.name()
+                            )
+                    );
+        }
     }
 }

@@ -2,12 +2,14 @@ package com.thanesh.employeeapp.employeeservice.service.impl;
 
 import com.thanesh.employeeapp.employeeservice.dto.Address;
 import com.thanesh.employeeapp.employeeservice.dto.EmployeeDTO;
-import com.thanesh.employeeapp.employeeservice.external.service.AddressClient;
+import com.thanesh.employeeapp.employeeservice.external.service.AddressService;
 import com.thanesh.employeeapp.employeeservice.model.Employee;
-import com.thanesh.employeeapp.employeeservice.reponse.ServerResponse;
+import com.thanesh.employeeapp.employeeservice.response.ServerResponse;
 import com.thanesh.employeeapp.employeeservice.repository.EmployeeRepository;
 import com.thanesh.employeeapp.employeeservice.service.EmployeeService;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.Optional;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
+    private static final Logger log = LoggerFactory.getLogger(EmployeeServiceImpl.class);
     @Autowired
     EmployeeRepository employeeRepository;
 
@@ -24,43 +27,46 @@ public class EmployeeServiceImpl implements EmployeeService {
     ModelMapper modelMapper;
 
     @Autowired
-    AddressClient addressClient;
+    AddressService addressService;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, ModelMapper modelMapper, AddressClient addressClient) {
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, ModelMapper modelMapper, AddressService addressService) {
         this.employeeRepository = employeeRepository;
         this.modelMapper = modelMapper;
-        this.addressClient = addressClient;
+        this.addressService = addressService;
     }
 
     @Override
     public EmployeeDTO getEmployeeById(Integer id) {
+        log.info("EmployeeServiceImpl::getEmployeeById started");
         Optional<Employee> optionalEmployee = employeeRepository.findById(id);
         EmployeeDTO employeeDTO = null;
         if (optionalEmployee.isPresent()) {
-            System.out.println("EmployeeServiceImpl::optionalEmployee: " + optionalEmployee.get());
-            System.out.println("optionalEmployee: " + optionalEmployee.get());
+            log.info("EmployeeServiceImpl::optionalEmployee: " + optionalEmployee.get());
             employeeDTO = modelMapper.map(optionalEmployee.get(), EmployeeDTO.class);
 
             try {
                 //call address microservice
-                ServerResponse serverResponseWithAddress = addressClient.getAddressByEmployeeId(id).getBody();
+                ServerResponse serverResponseWithAddress = addressService.getAddressByEmployeeId(id).getBody();
+                log.info("serverResponseWithAddress = " + serverResponseWithAddress);
                 if (HttpStatus.OK.name().equals(serverResponseWithAddress.getStatus())) {
-                    Address address = (Address) serverResponseWithAddress.getData();
-                    System.out.println("address = " + address);
+                    Address address = modelMapper.map(serverResponseWithAddress.getData(), Address.class);
+                    log.debug("address = " + address);
                     employeeDTO.setAddress(address);
-                    System.out.println("employeeDTO = " + employeeDTO);
+                    log.debug("employeeDTO = " + employeeDTO);
                 }
             } catch (Exception ex) {
-                System.out.println("ex = " + ex);
+                log.error("Something went wrong during fetching Employee Address details", ex);
             }
         }
+        log.info("EmployeeServiceImpl::getEmployeeById ended!!!");
         return employeeDTO;
     }
 
     @Override
-    public List<EmployeeDTO> getEmployees() {
+    public List<EmployeeDTO> getAllEmployees() {
+        log.info("EmployeeServiceImpl::getAllEmployees started");
         List<Employee> employeeList = employeeRepository.findAll();
-        System.out.println("EmployeeServiceImpl::employeeList = " + employeeList);
+        log.info("EmployeeServiceImpl::getAllEmployees, employeeList = " + employeeList);
         return employeeList.stream().map(e -> modelMapper.map(e, EmployeeDTO.class)).toList();
     }
 }
